@@ -53,15 +53,15 @@ export default {
       this.index = this.filelist.findIndex(item => item.name === row.name);
       this.contextLine = this.index + 1;
     },
-    getFilelist(parent_file_id = 'root') {
-      post('/api/filelist', {
+    async getFilelist(parent_file_id = 'root') {
+      await post('/api/filelist', {
         token: localStorage.getItem('token'),
         parent_file_id,
         drive_id: localStorage.getItem('drive_id')
-      }).then(res => {
+      }).then(async res => {
         if (res.code === "AccessTokenInvalid") {
           console.log('token失效')
-          this.getAccessToken()
+          await this.getAccessToken()
         } else {
           this.filelist = res;
           this.size = this.filelist.map(item => item.size || 0);
@@ -80,16 +80,16 @@ export default {
       })
     },
 
-    getAccessToken() {
-      post('/api/access_token', {refresh_token: localStorage.getItem('refresh_token')}).then((res) => {
+    async getAccessToken() {
+      await post('/api/access_token', {refresh_token: localStorage.getItem('refresh_token')}).then(async (res) => {
         console.log(res)
         localStorage.setItem("token", res + "")
-        this.getFilelist()
+        await this.getFilelist()
       })
     },
 
-    getFolder(file_id) {
-      this.getFilelist(file_id)
+    async getFolder(file_id) {
+      await this.getFilelist(file_id)
     },
 
     async download() {
@@ -101,27 +101,28 @@ export default {
       })
       console.log(downloadUrl)
       let res = await post('/api/downloadByMotrix', {url: downloadUrl, filename: file.name})
+      console.log(res)
       this.$Message.success('下载成功');
     },
 
-    getUserInfo() {
-      post('/api/getUserInfo', {token: localStorage.getItem('token')}).then(res => {
+    async getUserInfo() {
+      await post('/api/getUserInfo', {token: localStorage.getItem('token')}).then(res => {
         console.log(res)
         localStorage.setItem('drive_id', res['default_drive_id'])
       })
     }
   },
-  mounted() {
+  async mounted() {
     if (!localStorage.getItem('refresh_token')) {
-      this.$router.push('/login')
+      await this.$router.push('/login')
     }
     if (!localStorage.getItem('token')) {
-      this.getAccessToken()
+      await this.getAccessToken()
     }
     if (!localStorage.getItem('drive_id')) {
-      this.getUserInfo()
+      await this.getUserInfo()
     }
-    this.getFilelist();
+    await this.getFilelist();
   }
 }
 </script>

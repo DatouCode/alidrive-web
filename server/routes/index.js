@@ -90,4 +90,8 @@ router.post('/access_token', (req, res) => {
   })
 })
 
+router.get('/test', (req, res) => {
+  res.send('test')
+})
+
 module.exports = router;
