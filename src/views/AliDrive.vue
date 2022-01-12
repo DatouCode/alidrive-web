@@ -22,6 +22,7 @@
 <script>
 import {post} from '@/utils/axios'
 import {format} from 'date-fns'
+import * as api from '@/api/AliDrive'
 
 export default {
   data() {
@@ -34,6 +35,7 @@ export default {
         {
           title: '修改时间',
           key: 'updated_at',
+          sortable: true,
           width: 170
         },
         {
@@ -53,44 +55,6 @@ export default {
       this.index = this.filelist.findIndex(item => item.name === row.name);
       this.contextLine = this.index + 1;
     },
-    async getFilelist(parent_file_id = 'root') {
-      await post('/api/filelist', {
-        token: localStorage.getItem('token'),
-        parent_file_id,
-        drive_id: localStorage.getItem('drive_id')
-      }).then(async res => {
-        if (res.code === "AccessTokenInvalid") {
-          console.log('token失效')
-          await this.getAccessToken()
-        } else {
-          this.filelist = res;
-          this.size = this.filelist.map(item => item.size || 0);
-          this.filelist.map(file => {
-            file.updated_at = format(new Date(file.updated_at), "yyyy-MM-dd HH:mm:ss")
-            if (file.size) {
-              if (file.size < 1024 * 1024)
-                file.size = (file.size / 1024).toFixed(0) + 'KB';
-              else if (file.size < 1024 * 1024 * 1024)
-                file.size = (file.size / (1024 * 1024)).toFixed(0) + 'MB';
-              else
-                file.size = (file.size / (1024 * 1024 * 1024)).toFixed(0) + 'GB';
-            }
-          })
-        }
-      })
-    },
-
-    async getAccessToken() {
-      await post('/api/access_token', {refresh_token: localStorage.getItem('refresh_token')}).then(async (res) => {
-        console.log(res)
-        localStorage.setItem("token", res + "")
-        await this.getFilelist()
-      })
-    },
-
-    async getFolder(file_id) {
-      await this.getFilelist(file_id)
-    },
 
     async download() {
       let file = this.filelist[this.index]
@@ -105,24 +69,35 @@ export default {
       this.$Message.success('下载成功');
     },
 
-    async getUserInfo() {
-      await post('/api/getUserInfo', {token: localStorage.getItem('token')}).then(res => {
-        console.log(res)
-        localStorage.setItem('drive_id', res['default_drive_id'])
+    async getFilelist(file_id = 'root') {
+      this.filelist = await api.getFilelist(file_id);
+      this.size = this.filelist.map(item => item.size || 0);
+      this.filelist.map(file => {
+        file.updated_at = format(new Date(file.updated_at), "yyyy-MM-dd HH:mm:ss")
+        if (file.size) {
+          if (file.size < 1024 * 1024)
+            file.size = (file.size / 1024).toFixed(0) + 'KB';
+          else if (file.size < 1024 * 1024 * 1024)
+            file.size = (file.size / (1024 * 1024)).toFixed(0) + 'MB';
+          else
+            file.size = (file.size / (1024 * 1024 * 1024)).toFixed(0) + 'GB';
+        }
       })
-    }
+    },
+
+    async getFolder(file_id) {
+      await this.getFilelist(file_id)
+    },
   },
   async mounted() {
     if (!localStorage.getItem('refresh_token')) {
       await this.$router.push('/login')
     }
     if (!localStorage.getItem('token')) {
-      await this.getAccessToken()
+      await api.getAccessToken()
     }
-    if (!localStorage.getItem('drive_id')) {
-      await this.getUserInfo()
-    }
-    await this.getFilelist();
+    await api.getUserInfo()
+    await this.getFilelist('root');
   }
 }
 </script>

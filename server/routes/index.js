@@ -65,7 +65,8 @@ router.post('/downloadByMotrix', (req, res) => {
   });
 
   ws.on('message', function incoming(data) {
-    if (JSON.parse(data).method === 'aria2.onDownloadComplete') {
+    console.log(data.toString())
+    if (JSON.parse(data.toString()).method === 'aria2.onDownloadComplete') {
       ws.close();
       res.send('success')
     }
@@ -73,8 +74,9 @@ router.post('/downloadByMotrix', (req, res) => {
 })
 
 router.post('/access_token', (req, res) => {
-  axios.post('https://api.aliyundrive.com/token/refresh', {
+  axios.post('https://auth.aliyundrive.com/v2/account/token', {
     "refresh_token": req.body.refresh_token,
+    "grant_type": "refresh_token"
   }, {
     headers: {
       "Accept": "application/json, text/plain, */*",

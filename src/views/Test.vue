@@ -5,16 +5,19 @@
 </template>
 
 <script>
-import {get} from '@/utils/axios'
+import {post} from "@/utils/axios";
 
 export default {
   name: "Test",
-  async mounted() {
-    await get("/api/test").then(res => {
-      console.log(res)
-    })
+  methods: {
 
-    console.log('end')
+  },
+  mounted() {
+    post('/api/test', {
+      name: 'test'
+    }).then(res => {
+      console.log(res);
+    })
   }
 }
 </script>
