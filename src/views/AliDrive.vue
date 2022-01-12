@@ -64,9 +64,26 @@ export default {
         token: localStorage.getItem('token')
       })
       console.log(downloadUrl)
-      let res = await post('/api/downloadByMotrix', {url: downloadUrl, filename: file.name})
-      console.log(res)
-      this.$Message.success('下载成功');
+
+      let ws = new WebSocket('ws://localhost:16800/jsonrpc');
+      ws.send(JSON.stringify({
+        "jsonrpc": 2, "id": "", "method": "system.multicall", "params": [[{
+          "methodName": "aria2.addUri", "params": [[downloadUrl], {
+            "max-connection-per-server": 8,
+            "split": 8,
+            "out": file.name,
+            "referer": "https://www.aliyundrive.com/"
+          }]
+        }]]
+      }));
+
+      ws.on('message', function incoming(data) {
+        console.log(data.toString())
+        if (JSON.parse(data.toString()).method === 'aria2.onDownloadComplete') {
+          this.$Message.success('下载成功');
+          ws.close();
+        }
+      });
     },
 
     async getFilelist(file_id = 'root') {
