@@ -66,24 +66,29 @@ export default {
       console.log(downloadUrl)
 
       let ws = new WebSocket('ws://localhost:16800/jsonrpc');
-      ws.send(JSON.stringify({
-        "jsonrpc": 2, "id": "", "method": "system.multicall", "params": [[{
-          "methodName": "aria2.addUri", "params": [[downloadUrl], {
-            "max-connection-per-server": 8,
-            "split": 8,
-            "out": file.name,
-            "referer": "https://www.aliyundrive.com/"
-          }]
-        }]]
-      }));
-
-      ws.on('message', function incoming(data) {
-        console.log(data.toString())
-        if (JSON.parse(data.toString()).method === 'aria2.onDownloadComplete') {
-          this.$Message.success('下载成功');
-          ws.close();
+      ws.onmessage = function (event) {
+        let data = JSON.parse(event.data)
+        if (data.method === "aria2.onDownloadComplete") {
+          this.$Message['success']({
+            background: true,
+            content: '下载完成'
+          });
+          ws.close()
         }
-      });
+      };
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          "jsonrpc": 2, "id": "", "method": "system.multicall", "params": [[{
+            "methodName": "aria2.addUri", "params": [[downloadUrl], {
+              "max-connection-per-server": 8,
+              "split": 8,
+              "out": file.name,
+              "referer": "https://www.aliyundrive.com/"
+            }]
+          }]]
+        }))
+      }
     },
 
     async getFilelist(file_id = 'root') {
