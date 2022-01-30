@@ -32,3 +32,7 @@ export function getUserInfo() {
     return res
   })
 }
+
+export function trash(file_id) {
+  return post('/api/trash', {token: localStorage.getItem('token'), drive_id: localStorage.getItem('drive_id'), file_id})
+}

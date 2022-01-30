@@ -15,6 +15,7 @@
       </template>
       <template slot="contextMenu">
         <DropdownItem @click.native="download">下载</DropdownItem>
+        <DropdownItem @click.native="trash">删除</DropdownItem>
       </template>
     </Table>
   </div>
@@ -54,6 +55,16 @@ export default {
     handleContextMenu(row) {
       this.index = this.filelist.findIndex(item => item.name === row.name);
       this.contextLine = this.index + 1;
+    },
+
+    async trash() {
+      let file = this.filelist[this.index]
+      await api.trash(file.file_id)
+      this.$Message['success']({
+        background: true,
+        content: '删除成功'
+      });
+      this.filelist.splice(this.index, 1)
     },
 
     async download() {

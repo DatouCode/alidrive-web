@@ -38,14 +38,7 @@ router.post('/filelist', async (req, res) => {
 router.post('/getDownloadUrl', (req, res) => {
   axios.post('https://api.aliyundrive.com/v2/file/get_download_url', {"drive_id": req.body.drive_id, "file_id": req.body.file_id}, {
     headers: {
-      'authority': 'api.aliyundrive.com',
-      'authorization': `Bearer ${req.body.token}`,
-      'content-type': 'application/json;charset=UTF-8',
-      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36',
-      'origin': 'https://www.aliyundrive.com',
-      'referer': 'https://www.aliyundrive.com/',
-      'accept-language': 'zh-CN,zh;q=0.9',
-      'Content-Type': 'application/json; charset=UTF-8'
+      'authority': 'api.aliyundrive.com', 'authorization': `Bearer ${req.body.token}`, 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36', 'origin': 'https://www.aliyundrive.com', 'referer': 'https://www.aliyundrive.com/', 'accept-language': 'zh-CN,zh;q=0.9', 'Content-Type': 'application/json; charset=UTF-8'
     }
   }).then(({data: response}) => {
     res.send(response.url)
@@ -75,21 +68,30 @@ router.post('/downloadByMotrix', (req, res) => {
 
 router.post('/access_token', (req, res) => {
   axios.post('https://auth.aliyundrive.com/v2/account/token', {
-    "refresh_token": req.body.refresh_token,
-    "grant_type": "refresh_token"
+    "refresh_token": req.body.refresh_token, "grant_type": "refresh_token"
   }, {
     headers: {
-      "Accept": "application/json, text/plain, */*",
-      "Content-Type": "application/json;charset=utf-8",
-      "Origin": "https://www.aliyundrive.com",
-      "Referer": "https://www.aliyundrive.com/",
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:94.0) Gecko/20100101 Firefox/94.0",
+      "Accept": "application/json, text/plain, */*", "Content-Type": "application/json;charset=utf-8", "Origin": "https://www.aliyundrive.com", "Referer": "https://www.aliyundrive.com/", "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:94.0) Gecko/20100101 Firefox/94.0",
     }
   }).then(({data: response}) => {
     res.send(response['access_token'])
   }).catch(err => {
     res.send(err.response.data)
   })
+})
+
+router.post('/trash', (req, res) => {
+  axios.post('https://api.aliyundrive.com/v2/recyclebin/trash', {drive_id: req.body.drive_id, file_id: req.body.file_id}, {
+    headers: {
+      'authority': 'api.aliyundrive.com', 'authorization': `Bearer ${req.body.token}`, 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36', 'origin': 'https://www.aliyundrive.com', 'referer': 'https://www.aliyundrive.com/', 'accept-language': 'zh-CN,zh;q=0.9', 'Content-Type': 'application/json; charset=UTF-8'
+    }
+  })
+    .then(_ => {
+      res.sendStatus(200)
+    })
+    .catch(err => {
+      res.send(err.response.data)
+    })
 })
 
 router.get('/test', (req, res) => {
