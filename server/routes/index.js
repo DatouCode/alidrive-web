@@ -80,18 +80,39 @@ router.post('/access_token', (req, res) => {
   })
 })
 
-router.post('/trash', (req, res) => {
-  axios.post('https://api.aliyundrive.com/v2/recyclebin/trash', {drive_id: req.body.drive_id, file_id: req.body.file_id}, {
+router.post('/trash', async (req, res) => {
+  await axios.post('https://api.aliyundrive.com/v2/recyclebin/trash', {drive_id: req.body.drive_id, file_id: req.body.file_id}, {
     headers: {
       'authority': 'api.aliyundrive.com', 'authorization': `Bearer ${req.body.token}`, 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36', 'origin': 'https://www.aliyundrive.com', 'referer': 'https://www.aliyundrive.com/', 'accept-language': 'zh-CN,zh;q=0.9', 'Content-Type': 'application/json; charset=UTF-8'
     }
   })
-    .then(_ => {
-      res.sendStatus(200)
-    })
-    .catch(err => {
-      res.send(err.response.data)
-    })
+  let {data: list} = await axios.post('https://api.aliyundrive.com/v2/recyclebin/list', {
+    drive_id: req.body.drive_id,
+    image_thumbnail_process: 'image/resize,w_400/format,jpeg',
+    limit: 100,
+    order_by: 'name',
+    order_direction: 'DESC',
+    video_thumbnail_process: "video/snapshot,t_1000,f_jpg,ar_auto,w_400"
+  }, {
+    headers: {
+      'authority': 'api.aliyundrive.com', 'authorization': `Bearer ${req.body.token}`, 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36', 'origin': 'https://www.aliyundrive.com', 'referer': 'https://www.aliyundrive.com/', 'accept-language': 'zh-CN,zh;q=0.9', 'Content-Type': 'application/json; charset=UTF-8'
+    }
+  })
+  let {data: batch} = await axios.post('https://api.aliyundrive.com/v3/batch', {
+    "requests": [
+      {"body": {"drive_id": req.body.drive_id, "file_id": list.items[0].file_id}, "headers": {"Content-Type": "application/json"}, "id": list.items[0].file_id, "method": "POST", "url": "/file/delete"}
+    ],
+    "resource": "file"
+  }, {
+    headers: {
+      'authority': 'api.aliyundrive.com', 'authorization': `Bearer ${req.body.token}`, 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36', 'origin': 'https://www.aliyundrive.com', 'referer': 'https://www.aliyundrive.com/', 'accept-language': 'zh-CN,zh;q=0.9', 'Content-Type': 'application/json; charset=UTF-8'
+    }
+  })
+  if (batch['responses'][0].status === 204) {
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(500)
+  }
 })
 
 router.get('/test', (req, res) => {

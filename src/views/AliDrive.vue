@@ -42,7 +42,7 @@ export default {
         {
           title: '大小',
           key: 'size',
-          width: 100
+          width: 120
         }
       ],
       filelist: [],
@@ -109,11 +109,11 @@ export default {
         file.updated_at = format(new Date(file.updated_at), "yyyy-MM-dd HH:mm:ss")
         if (file.size) {
           if (file.size < 1024 * 1024)
-            file.size = (file.size / 1024).toFixed(0) + 'KB';
+            file.size = (file.size / 1024).toFixed(2) + 'KB';
           else if (file.size < 1024 * 1024 * 1024)
-            file.size = (file.size / (1024 * 1024)).toFixed(0) + 'MB';
+            file.size = (file.size / (1024 * 1024)).toFixed(2) + 'MB';
           else
-            file.size = (file.size / (1024 * 1024 * 1024)).toFixed(0) + 'GB';
+            file.size = (file.size / (1024 * 1024 * 1024)).toFixed(2) + 'GB';
         }
       })
     },
